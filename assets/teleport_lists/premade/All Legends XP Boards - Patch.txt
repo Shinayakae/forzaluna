@@ -1,0 +1,13 @@
+﻿# Forza Horizon 6 Luna teleport list
+# NameBase64|PositionBase64
+U3BvdCAx|fileRf5S1kJCpcvFAAAAAA==
+eHAgMQ==|v7NVRe6Wy0LM9c7F1FimQw==
+eHAgMg==|g/+DRfNk60JfqsLFJWfLPQ==
+eHAgMw==|XJybRRSO/0IeyLfFP/nQQg==
+eHAgNA==|pMqCRXbqJEM6H7PFC0DxQw==
+eHAgNQ==|FlWWRdEfVUMnk6PFa35MwA==
+eHAgNg==|n8qIRcpSL0MwdqLFSr4QRQ==
+eHAgNw==|pVSDRTbpykKJBo7FfSsAww==
+eHAgOA==|hHiYRcMdB0NzKYzF0os7vA==
+eHAgOQ==|WkGWRUWmzEKVum3F14xiwQ==
+eHAgMTA=|kr2LRQyV0EIhSlTFLj7IPA==

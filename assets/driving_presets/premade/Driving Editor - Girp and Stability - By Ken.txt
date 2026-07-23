@@ -1,0 +1,18 @@
+﻿# Forza Horizon 6 Luna Driving Editor preset
+# FeatureId|Enabled|Base64Value
+17|0|T2Zm
+18|1|MTAw
+19|0|T2Zm
+20|1|MTAw
+23|0|MTAw
+34|0|T2Zm
+36|0|MTAw
+37|0|MTAw
+38|0|MTAw
+39|1|MTAw
+41|0|MTAw
+44|1|MTAw
+48|1|MTAw
+49|0|MTAw
+52|1|MTAw
+53|0|MTAw

@@ -4,6 +4,8 @@ The full, open-source source code for **Luna**, an all-in-one companion app for
 Forza Horizon 6: live driving tools, garage control, teleportation, photo mode,
 and deep tuning, in one clean Windows app.
 
+If you would like to donate: https://ko-fi.com/ameshina
+
 ## Build
 
 Requirements:

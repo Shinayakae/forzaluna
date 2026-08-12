@@ -2327,7 +2327,7 @@ namespace ForzaHorizon6AutoshowUnlocker
                     _autoRaceDriveSlideCalmer = slide;
                     _autoRaceDriveLandingStabilizer = landing;
                     _autoRaceDriveAdaptiveBrake = brake;
-                    _autoRaceDriveScanIntervalMs = scan;
+                    _autoRaceDriveScanIntervalMs = Math.Max(16, Math.Min(2000, scan));
                     _autoRaceDriveOffWaypointMeters = offWaypoint;
                     _autoRaceDriveNoWaterDrag = noWater.Checked;
 

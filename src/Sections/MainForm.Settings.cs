@@ -1903,7 +1903,10 @@ namespace ForzaHorizon6AutoshowUnlocker
             grid.ColumnHeadersDefaultCellStyle.ForeColor = TextPrimary;
             grid.ColumnHeadersDefaultCellStyle.SelectionBackColor = Blend(SurfaceAlt, AccentBlue, 0.06F);
             grid.ColumnHeadersDefaultCellStyle.SelectionForeColor = TextPrimary;
+            var headerStyleFont = grid.ColumnHeadersDefaultCellStyle.Font;
             grid.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI Semibold", 9.25F);
+            if (headerStyleFont != null)
+                headerStyleFont.Dispose();
             grid.ColumnHeadersDefaultCellStyle.Padding = new Padding(10, 0, 7, 0);
             grid.DefaultCellStyle.BackColor = Surface;
             grid.DefaultCellStyle.ForeColor = TextPrimary;

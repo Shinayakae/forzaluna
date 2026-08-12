@@ -465,6 +465,12 @@ namespace ForzaHorizon6AutoshowUnlocker
             if (System.Threading.Interlocked.Exchange(ref _teleportPlaylistHotkeyRunning, 1) == 1)
                 return;
 
+            if (IsDisposed)
+            {
+                System.Threading.Interlocked.Exchange(ref _teleportPlaylistHotkeyRunning, 0);
+                return;
+            }
+
             BeginInvoke((Action)(delegate
             {
                 try
@@ -584,6 +590,9 @@ namespace ForzaHorizon6AutoshowUnlocker
             var name = row.Name;
             ThreadPool.QueueUserWorkItem(delegate
             {
+                if (!_teleportPlaylistRunning)
+                    return;
+
                 try
                 {
                     var db = _database;
@@ -1621,10 +1630,15 @@ namespace ForzaHorizon6AutoshowUnlocker
         private string GetNextTeleportLocationName(string prefix)
         {
             prefix = CleanTeleportLocationName(string.IsNullOrWhiteSpace(prefix) ? "Spot" : prefix);
-            var next = _teleportLocations
-                .Where(row => row != null && row.Name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                .Count() + 1;
-            return prefix + " " + next.ToString(CultureInfo.InvariantCulture);
+            var next = 1;
+            string candidate;
+            do
+            {
+                candidate = prefix + " " + next.ToString(CultureInfo.InvariantCulture);
+                next++;
+            }
+            while (_teleportLocations.Any(row => row != null && string.Equals(row.Name, candidate, StringComparison.OrdinalIgnoreCase)));
+            return candidate;
         }
 
         private static string CleanTeleportLocationName(string name)

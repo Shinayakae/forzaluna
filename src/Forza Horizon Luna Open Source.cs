@@ -13912,7 +13912,7 @@ namespace ForzaHorizon6AutoshowUnlocker
                     case "Traction_Snow":
                         return true;
                     default:
-                        return true;
+                        return false;
                 }
             }
 
@@ -14019,7 +14019,7 @@ namespace ForzaHorizon6AutoshowUnlocker
                 case "UseForcePropLongTorque":
                     return true;
                 default:
-                    return true;
+                    return false;
             }
         }
 
@@ -14866,7 +14866,7 @@ namespace ForzaHorizon6AutoshowUnlocker
                     double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out value))
                 {
                     AddDatabaseTuningMirror(db, carId, explicitKeys, mirrors, "Profile0_Career_Garage", "TopSpeed", value.ToString("0.########", CultureInfo.InvariantCulture), "real", "Garage top-speed cache");
-                    if (Math.Abs(0.44704D) > double.Epsilon)
+                    if (Math.Abs(value) > double.Epsilon)
                         AddDatabaseTuningMirror(db, carId, explicitKeys, mirrors, "Data_Car", "TopSpeed-mph", (value / 0.44704D).ToString("0.########", CultureInfo.InvariantCulture), "real", "Top Speed MPH cache");
                     continue;
                 }
@@ -14876,7 +14876,7 @@ namespace ForzaHorizon6AutoshowUnlocker
                     double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out value))
                 {
                     AddDatabaseTuningMirror(db, carId, explicitKeys, mirrors, "Data_Car", "SimTopSpeed", value.ToString("0.########", CultureInfo.InvariantCulture), "real", "Top Speed simulation cache");
-                    if (Math.Abs(0.44704D) > double.Epsilon)
+                    if (Math.Abs(value) > double.Epsilon)
                         AddDatabaseTuningMirror(db, carId, explicitKeys, mirrors, "Data_Car", "TopSpeed-mph", (value / 0.44704D).ToString("0.########", CultureInfo.InvariantCulture), "real", "Top Speed MPH cache");
                     continue;
                 }
@@ -32222,6 +32222,11 @@ namespace ForzaHorizon6AutoshowUnlocker
                 if (engaged)
                 {
                     var vel = ReadBytes(vp + 0x20UL, 12);
+                    if (vel.Length < 12)
+                    {
+                        _driftModeCurrentForce = 0F;
+                        return;
+                    }
                     var dvx = BitConverter.ToSingle(vel, 0);
                     var dvz = BitConverter.ToSingle(vel, 8);
                     if (IsFiniteFloat(dvx) && IsFiniteFloat(dvz))
@@ -34179,9 +34184,6 @@ namespace ForzaHorizon6AutoshowUnlocker
             WriteFloat(vehiclePointer + (ulong)VehiclePositionOffset, x);
             WriteFloat(vehiclePointer + (ulong)VehiclePositionOffset + 4UL, y);
             WriteFloat(vehiclePointer + (ulong)VehiclePositionOffset + 8UL, z);
-            WriteFloat(vehiclePointer + (ulong)VehiclePositionOffset, x);
-            WriteFloat(vehiclePointer + (ulong)VehiclePositionOffset + 4UL, y);
-            WriteFloat(vehiclePointer + (ulong)VehiclePositionOffset + 8UL, z);
             SyncFlyHoldToTeleport(sample.Position, false);
         }
 
@@ -35922,7 +35924,8 @@ namespace ForzaHorizon6AutoshowUnlocker
                 if (IsReadableMemoryRange(vehiclePointer + 0x20UL, 16))
                 {
                     velocity = ReadBytes(vehiclePointer + 0x20UL, 16);
-                    Buffer.BlockCopy(BitConverter.GetBytes(0F), 0, velocity, 4, 4);
+                    if (velocity.Length >= 16)
+                        Buffer.BlockCopy(BitConverter.GetBytes(0F), 0, velocity, 4, 4);
                 }
 
                 ApplyTeleportPosition(vehiclePointer, position, false);
@@ -46621,7 +46624,7 @@ namespace ForzaHorizon6AutoshowUnlocker
                     WriteUInt64(_crcFunctionPointerAddress, _crcOriginalPointer);
                 }
 
-                Thread.Sleep(1000);
+                Thread.Sleep(100);
 
                 lock (_runtimePatchLock)
                 {
@@ -46648,6 +46651,8 @@ namespace ForzaHorizon6AutoshowUnlocker
         {
             var timer = _crcTimer;
             _crcTimer = null;
+            lock (_runtimePatchLock)
+                _crcBypassActive = false;
             if (timer != null)
                 timer.Dispose();
         }
@@ -46693,24 +46698,27 @@ namespace ForzaHorizon6AutoshowUnlocker
 
         private void RestoreCrcPointer()
         {
-            if (!_crcBypassActive || _crcFunctionPointerAddress == 0 || _crcOriginalPointer == 0)
-                return;
+            lock (_runtimePatchLock)
+            {
+                if (!_crcBypassActive || _crcFunctionPointerAddress == 0 || _crcOriginalPointer == 0)
+                    return;
 
-            try
-            {
-                WriteUInt64(_crcFunctionPointerAddress, _crcOriginalPointer);
-                _log("CRC check bypass restored.");
-            }
-            catch (Exception ex)
-            {
-                _log("Could not restore CRC bypass pointer: " + ex.Message);
-            }
-            finally
-            {
                 _crcBypassActive = false;
-                _crcFunctionPointerAddress = 0;
-                _crcOriginalPointer = 0;
-                _crcRetAddress = 0;
+                try
+                {
+                    WriteUInt64(_crcFunctionPointerAddress, _crcOriginalPointer);
+                    _log("CRC check bypass restored.");
+                }
+                catch (Exception ex)
+                {
+                    _log("Could not restore CRC bypass pointer: " + ex.Message);
+                }
+                finally
+                {
+                    _crcFunctionPointerAddress = 0;
+                    _crcOriginalPointer = 0;
+                    _crcRetAddress = 0;
+                }
             }
         }
 
@@ -47539,11 +47547,11 @@ namespace ForzaHorizon6AutoshowUnlocker
             var sqlRemote = Native.VirtualAllocEx(_handle, IntPtr.Zero, (UIntPtr)Math.Max(0x1000, sqlBytes.Length), Native.MemCommitReserve, Native.PageReadWrite);
             var resultRemote = Native.VirtualAllocEx(_handle, IntPtr.Zero, (UIntPtr)8, Native.MemCommitReserve, Native.PageReadWrite);
             var codeRemote = Native.VirtualAllocEx(_handle, IntPtr.Zero, (UIntPtr)0x1000, Native.MemCommitReserve, Native.PageExecuteReadWrite);
-            if (sqlRemote == IntPtr.Zero || resultRemote == IntPtr.Zero || codeRemote == IntPtr.Zero)
-                throw new InvalidOperationException("VirtualAllocEx failed.");
-
             try
             {
+                if (sqlRemote == IntPtr.Zero || resultRemote == IntPtr.Zero || codeRemote == IntPtr.Zero)
+                    throw new InvalidOperationException("VirtualAllocEx failed.");
+
                 WriteBytes((ulong)sqlRemote.ToInt64(), sqlBytes);
                 WriteBytes((ulong)resultRemote.ToInt64(), new byte[8]);
 
@@ -47557,12 +47565,16 @@ namespace ForzaHorizon6AutoshowUnlocker
 
                 var wait = Native.WaitForSingleObject(thread, 15000);
                 uint exitCode;
-                Native.GetExitCodeThread(thread, out exitCode);
+                var exitOk = Native.GetExitCodeThread(thread, out exitCode);
                 Native.CloseHandle(thread);
                 if (wait == 0x102)
                     throw new InvalidOperationException("Remote SQL thread timed out.");
-                if (exitCode != 0)
-                    _log("SQL candidate exit 0x" + exitCode.ToString("X") + " db=0x" + candidate.DatabaseObject.ToString("X"));
+                if (wait == 0xFFFFFFFF || !exitOk || exitCode != 0)
+                {
+                    if (exitCode != 0)
+                        _log("SQL candidate exit 0x" + exitCode.ToString("X") + " db=0x" + candidate.DatabaseObject.ToString("X"));
+                    return 0;
+                }
 
                 return ReadUInt64((ulong)resultRemote.ToInt64());
             }
@@ -51295,20 +51307,30 @@ namespace ForzaHorizon6AutoshowUnlocker
                 const int tokenAdjustPrivileges = 0x20;
                 const int tokenQuery = 0x8;
                 const int sePrivilegeEnabled = 0x2;
+                const int errorNotAllAssigned = 1305;
                 IntPtr token = IntPtr.Zero;
                 if (!OpenProcessToken(GetCurrentProcess(), tokenAdjustPrivileges | tokenQuery, ref token))
                     return;
 
-                long luid = 0;
-                if (!LookupPrivilegeValue(null, "SeDebugPrivilege", ref luid))
-                    return;
+                try
+                {
+                    long luid = 0;
+                    if (!LookupPrivilegeValue(null, "SeDebugPrivilege", ref luid))
+                        return;
 
-                var tp = new TokPriv1Luid();
-                tp.Count = 1;
-                tp.Luid = luid;
-                tp.Attr = sePrivilegeEnabled;
-                AdjustTokenPrivileges(token, false, ref tp, 0, IntPtr.Zero, IntPtr.Zero);
-                CloseHandle(token);
+                    var tp = new TokPriv1Luid();
+                    tp.Count = 1;
+                    tp.Luid = luid;
+                    tp.Attr = sePrivilegeEnabled;
+                    var assigned = AdjustTokenPrivileges(token, false, ref tp, 0, IntPtr.Zero, IntPtr.Zero);
+                    if (!assigned || Marshal.GetLastWin32Error() == errorNotAllAssigned)
+                        return;
+                }
+                finally
+                {
+                    if (token != IntPtr.Zero)
+                        CloseHandle(token);
+                }
             }
             catch
             {
@@ -51345,7 +51367,7 @@ namespace ForzaHorizon6AutoshowUnlocker
                     }
                 };
 
-                SendInput((uint)scanInputs.Length, scanInputs, Marshal.SizeOf(typeof(Input)));
+                if (SendInput((uint)scanInputs.Length, scanInputs, Marshal.SizeOf(typeof(Input))) != (uint)scanInputs.Length) return;
                 return;
             }
 
@@ -51369,13 +51391,13 @@ namespace ForzaHorizon6AutoshowUnlocker
                 }
             };
 
-            SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(Input)));
+            if (SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(Input))) != (uint)inputs.Length) return;
         }
 
         public static void SendMouseLeftClick(int x, int y)
         {
-            SetCursorPos(x, y);
-            Thread.Sleep(35);
+            if (!SetCursorPos(x, y))
+                return;
             var inputs = new[]
             {
                 new Input
@@ -51396,7 +51418,7 @@ namespace ForzaHorizon6AutoshowUnlocker
                 }
             };
 
-            SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(Input)));
+            if (SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(Input))) != (uint)inputs.Length) return;
         }
 
         private static bool IsExtendedVirtualKey(ushort virtualKey)

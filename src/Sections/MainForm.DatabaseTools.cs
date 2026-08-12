@@ -1624,6 +1624,8 @@ namespace ForzaHorizon6AutoshowUnlocker
                 var columnSql = EscapeIdentifierForSql(edit.ColumnName);
                 var literal = BuildGenericDatabaseSqlLiteral(edit);
                 ExecuteAutoshowSql(db, "CREATE TABLE IF NOT EXISTS " + backupSql + " AS SELECT rowid AS _rowid_, * FROM " + tableSql + ";");
+                if (!db.TableExists(backupName))
+                    continue;
                 ExecuteAutoshowSql(db, "UPDATE " + tableSql + " SET " + columnSql + " = " + literal + " WHERE rowid = " + edit.RowId.ToString(CultureInfo.InvariantCulture) + ";");
                 touched++;
             }

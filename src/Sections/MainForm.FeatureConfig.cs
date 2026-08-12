@@ -252,8 +252,9 @@ namespace ForzaHorizon6AutoshowUnlocker
                 File.WriteAllLines(FeatureAutosavePath, CaptureFeatureConfigLines(), Encoding.UTF8);
                 _lastFeatureAutosaveSignature = signature;
             }
-            catch
+            catch (Exception ex)
             {
+                Log("Feature autosave failed: " + ex.Message);
             }
         }
 

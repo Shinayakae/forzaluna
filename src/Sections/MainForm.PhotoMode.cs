@@ -322,7 +322,8 @@ namespace ForzaHorizon6AutoshowUnlocker
             BeginInvoke((Action)(delegate
             {
                 SetPhotoModeStatus(summary, AccentGreen);
-                ScanPhotoMode();
+                if (_database != null && _database.IsAlive)
+                    ScanPhotoMode();
             }));
         }
 
@@ -333,7 +334,8 @@ namespace ForzaHorizon6AutoshowUnlocker
             BeginInvoke((Action)(delegate
             {
                 SetPhotoModeStatus(summary, AccentGreen);
-                ScanPhotoMode();
+                if (_database != null && _database.IsAlive)
+                    ScanPhotoMode();
             }));
         }
 

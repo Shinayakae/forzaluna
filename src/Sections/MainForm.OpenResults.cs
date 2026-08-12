@@ -6,7 +6,14 @@ namespace ForzaHorizon6AutoshowUnlocker
     {
         private void OpenResultsFolder()
         {
-            Process.Start("explorer.exe", _resultsDir);
+            try
+            {
+                Process.Start("explorer.exe", _resultsDir);
+            }
+            catch (System.Exception ex)
+            {
+                Log("Could not open results folder: " + ex.Message);
+            }
         }
     }
 }
